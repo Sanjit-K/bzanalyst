@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyblock Bazaar</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <div class="container">
+        <h1>Skyblock Bazaar Data</h1>
+        
+        <div class="search-section">
+            <label for="product-search">Search for a Product:</label>
+            <input type="text" id="product-search" placeholder="Search products..." autocomplete="off">
+        </div>
+        
+        <div class="interval-section">
+            <label for="interval-select">Select Fetch Interval:</label>
+            <select id="interval-select">
+                <option value="1000">Ultra-fast (1 sec)</option>
+                <option value="10000">Fast (10 sec)</option>
+                <option value="30000">Normal (30 sec)</option>
+                <option value="60000">Slower (1 min)</option>
+                <option value="300000">Slow (5 min)</option>
+            </select>
+        </div>
+
+        <table id="bazaar-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Buy Price</th>
+                    <th>Sell Price</th>
+                    <th>Buy Volume</th>
+                    <th>Sell Volume</th>
+                    <th>Good Buy?</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table data will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
