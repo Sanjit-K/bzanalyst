@@ -127,16 +127,22 @@ function analyzeGoodBuy(sellPrice, buyPrice, sellVolume, buyVolume) {
     const sellVol = parseInt(sellVolume) || 0;
     const buyVol = parseInt(buyVolume) || 0;
 
-    const profitMargin = sell/buy * 100;
+    const profitpercent = buy * 100/sell;
     const liquidity = Math.min(sellVol, buyVol);
-    console.log(profitMargin);
+    console.log(profitpercent);
     console.log(liquidity);
-    if (profitMargin > 30 && liquidity > 1000000) {
-        return { isGoodBuy: true, reason: 'High profit margin and good liquidity.' };
-    } else if (profitMargin > 10) {
-        return { isGoodBuy: true, reason: 'Profitable, but liquidity is low.' };
+    if (profitpercent > 800) {
+        return { isGoodBuy: false, reason: 'Likely market manipulation' };
+    } else if (profitpercent > 30 && liquidity > 100000) {
+        return { isGoodBuy: true, reason: 'High profit percent and good liquidity.' };
+    } else if (profitpercent > 30 && liquidity < 10000) {
+        return { isGoodBuy: true, reason: 'High profit percent, but liquidity is low.' };
+    }else if (profitpercent < 30 && profitpercent>10 && liquidity < 10000) {
+        return { isGoodBuy: false, reason: 'Profitable, but liquidity is low.' };
+    } else if (profitpercent < 10 && liquidity > 10000) {
+        return { isGoodBuy: true, reason: 'Good liquidity, but low profit percent.' };
     } else {
-        return { isGoodBuy: false, reason: 'Low or negative profit margin.' };
+        return { isGoodBuy: false, reason: 'Low profit percent and low liquidity.' };
     }
 }
 
