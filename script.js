@@ -1,15 +1,25 @@
 const API_URL = 'https://api.hypixel.net/skyblock/bazaar';
 
 let interval;
+let balance = parseFloat(localStorage.getItem('balance')) || 10000;  
+let inventory = JSON.parse(localStorage.getItem('inventory')) || {};  
+let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || []; 
+
 const productSearchInput = document.getElementById('product-search');
 const tableBody = document.querySelector('#bazaar-table tbody');
+const balanceDisplay = document.getElementById('balance-display');
+const inventoryDisplay = document.getElementById('inventory-display');
+const buyQuantityInput = document.getElementById('buy-quantity');
+const sellQuantityInput = document.getElementById('sell-quantity');
+const buyButton = document.getElementById('buy-button');
+const sellButton = document.getElementById('sell-button');
+const historyList = document.getElementById('history-list');
 let allProducts = [];
-
 
 async function fetchBazaarData() {
     const query = productSearchInput.value.trim().toUpperCase();  
 
-    if (!query) return; 
+    if (!query) return;
 
     try {
         const response = await fetch(API_URL);
@@ -17,19 +27,18 @@ async function fetchBazaarData() {
 
         if (!data.success) {
             console.error('Failed to fetch data from API');
-            clearTable(); 
+            clearTable();
             return;
         }
 
-        allProducts = Object.keys(data.products); 
-        filterSuggestions(query); 
+        allProducts = Object.keys(data.products);
+        filterSuggestions(query);
         processBazaarData(data, query);
     } catch (error) {
         console.error('Error fetching Bazaar data:', error);
-        clearTable(); 
+        clearTable();
     }
 }
-
 
 function processBazaarData(bazaarData, targetProduct) {
     const products = bazaarData.products;
@@ -42,51 +51,45 @@ function processBazaarData(bazaarData, targetProduct) {
 
     const productData = products[targetProduct];
 
-    const sellPrice = productData.sell_summary?.[0]?.pricePerUnit || 'N/A';
-    const buyPrice = productData.buy_summary?.[0]?.pricePerUnit || 'N/A';
-    const sellVolume = productData.quick_status?.sellVolume || 'N/A';
-    const buyVolume = productData.quick_status?.buyVolume || 'N/A';
+    const buyPrice = productData.sell_summary?.[0]?.pricePerUnit || 'N/A';
+    const sellPrice = productData.buy_summary?.[0]?.pricePerUnit || 'N/A';
+    const buyVolume = productData.quick_status?.sellVolume || 'N/A';
+    const sellVolume = productData.quick_status?.buyVolume || 'N/A';
 
     const timestamp = new Date().toLocaleString();
 
-    
     tableBody.innerHTML = '';
 
-    
-    const analysis = analyzeGoodBuy(sellPrice, buyPrice, sellVolume, buyVolume);
+    const analysis = analyzeGoodBuy(buyPrice, sellPrice, buyVolume, sellVolume);
 
-    
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>${timestamp}</td>
-        <td>${sellPrice}</td>
         <td>${buyPrice}</td>
-        <td>${sellVolume}</td>
+        <td>${sellPrice}</td>
         <td>${buyVolume}</td>
+        <td>${sellVolume}</td>
         <td>${analysis.isGoodBuy ? 'Yes' : 'No'}</td>
         <td>${analysis.reason}</td>
     `;
     tableBody.appendChild(row);
-}
 
+    document.getElementById('buy-sell-controls').style.display = 'block';  
+}
 
 function clearTable() {
     tableBody.innerHTML = '';
-    console.log("cleared"); 
 }
 
-
 function filterSuggestions(query) {
-    if (!query) return; 
+    if (!query) return;
 
     const filteredProducts = allProducts.filter(product =>
         product.toLowerCase().includes(query.toLowerCase())
     );
 
-    
     showInlineSuggestions(query, filteredProducts);
 }
-
 
 function showInlineSuggestions(query, filteredProducts) {
     const currentValue = productSearchInput.value;
@@ -105,12 +108,10 @@ function showInlineSuggestions(query, filteredProducts) {
     }
 }
 
-
 function selectProductFromInput() {
     const selectedProduct = productSearchInput.value.trim().toUpperCase();
     if (selectedProduct) fetchBazaarData();
 }
-
 
 function startAutoFetch() {
     const selectedInterval = document.getElementById('interval-select').value;
@@ -120,53 +121,146 @@ function startAutoFetch() {
     interval = setInterval(fetchBazaarData, intervalTime);
 }
 
-
-function analyzeGoodBuy(sellPrice, buyPrice, sellVolume, buyVolume) {
-    const sell = parseFloat(sellPrice) || 0;
+function analyzeGoodBuy(buyPrice, sellPrice, buyVolume, sellVolume) {
     const buy = parseFloat(buyPrice) || 0;
-    const sellVol = parseInt(sellVolume) || 0;
+    const sell = parseFloat(sellPrice) || 0;
     const buyVol = parseInt(buyVolume) || 0;
+    const sellVol = parseInt(sellVolume) || 0;
 
-    const profitpercent = buy * 100/sell;
-    const liquidity = Math.min(sellVol, buyVol);
-    console.log(profitpercent);
-    console.log(liquidity);
+    const profitpercent = buy * 100 / sell;
+    const liquidity = Math.min(buyVol, sellVol);
+    
     if (profitpercent > 800) {
         return { isGoodBuy: false, reason: 'Likely market manipulation' };
     } else if (profitpercent > 30 && liquidity > 100000) {
         return { isGoodBuy: true, reason: 'High profit percent and good liquidity.' };
     } else if (profitpercent > 30 && liquidity < 10000) {
         return { isGoodBuy: true, reason: 'High profit percent, but liquidity is low.' };
-    }else if (profitpercent < 30 && profitpercent>10 && liquidity < 10000) {
+    } else if (profitpercent < 30 && profitpercent > 10 && liquidity < 10000) {
         return { isGoodBuy: false, reason: 'Profitable, but liquidity is low.' };
     } else if (profitpercent < 10 && liquidity > 10000) {
         return { isGoodBuy: true, reason: 'Good liquidity, but low profit percent.' };
     } else {
-        return { isGoodBuy: false, reason: 'Low profit percent and low liquidity.' };
+        return { isGoodBuy: false, reason: 'Low profit and low liquidity.' };
     }
 }
 
+function handleBuy() {
+    const quantity = parseInt(buyQuantityInput.value);
+    const buyPrice = parseFloat(document.querySelector('#bazaar-table tbody tr td:nth-child(2)').innerText);
 
-window.onload = () => {
-    productSearchInput.value = '';
+    if (quantity <= 0 || isNaN(quantity)) return;  
 
-    startAutoFetch();
+    const totalPrice = buyPrice * quantity;
 
-    document.getElementById('interval-select').addEventListener('change', startAutoFetch);
+    if (balance >= totalPrice) {
+        balance -= totalPrice;
+        inventory[productSearchInput.value] = (inventory[productSearchInput.value] || 0) + quantity;
+        updateBalanceDisplay();
+        updateInventoryDisplay();
+        saveData();  
+        logTransaction('Buy', quantity, buyPrice);
+    } else {
+        alert("Not enough coins to buy this product.");
+    }
+}
 
-    productSearchInput.addEventListener('input', () => {
-        const query = productSearchInput.value.trim().toUpperCase();
-        filterSuggestions(query);
-    });
+function handleSell() {
+    const quantity = parseInt(sellQuantityInput.value);
+    const sellPrice = parseFloat(document.querySelector('#bazaar-table tbody tr td:nth-child(3)').innerText);
 
-    productSearchInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Tab') {
-            event.preventDefault();
-            selectProductFromInput();
+    if (quantity <= 0 || isNaN(quantity)) return;  
+
+    if (inventory[productSearchInput.value] && inventory[productSearchInput.value] >= quantity) {
+        inventory[productSearchInput.value] -= quantity;
+        balance += sellPrice * quantity;
+        updateBalanceDisplay();
+        updateInventoryDisplay();
+        saveData();  
+        logTransaction('Sell', quantity, sellPrice);
+    } else {
+        alert("Not enough items in inventory to sell.");
+    }
+}
+
+function updateBalanceDisplay() {
+    balanceDisplay.innerText = `Balance: ${balance.toFixed(2)} coins`;
+}
+
+function updateInventoryDisplay() {
+    inventoryDisplay.innerHTML = ''; 
+    for (const [item, quantity] of Object.entries(inventory)) {
+        const inventoryItem = document.createElement('div');
+        inventoryItem.textContent = `${item}: ${quantity}`;
+        if(quantity > 0) {
+            inventoryDisplay.appendChild(inventoryItem);
         }
+        
+    }
+}
 
-        if (event.key === 'Backspace') {
-            productSearchInput.value = '';
-        }
+function logTransaction(type, quantity, price) {
+    const time = new Date().toLocaleString();
+    const transaction = {
+        type: type,
+        quantity: quantity,
+        price: price,
+        total: quantity * price,
+        time: time,
+    };
+
+    transactionHistory.push(transaction);
+    updateTransactionHistory();
+    saveData();  
+}
+
+function updateTransactionHistory() {
+    historyList.innerHTML = ''; 
+    transactionHistory.forEach(transaction => {
+        const transactionItem = document.createElement('li');
+        transactionItem.textContent = `${transaction.type} - ${transaction.quantity} units @ ${transaction.price} each (${transaction.total} total) at ${transaction.time}`;
+        historyList.appendChild(transactionItem);
     });
-};
+}
+
+function saveData() {
+    localStorage.setItem('balance', balance);
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+    localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory)); 
+}
+
+buyButton.addEventListener('click', handleBuy);
+sellButton.addEventListener('click', handleSell);
+productSearchInput.addEventListener('input', selectProductFromInput);
+document.getElementById('interval-select').addEventListener('change', startAutoFetch);
+
+startAutoFetch();
+updateBalanceDisplay();
+updateInventoryDisplay();
+updateTransactionHistory();
+
+
+const customBalanceInput = document.getElementById('custom-balance');
+const setBalanceButton = document.getElementById('set-balance-button');
+
+
+function handleSetCustomBalance() {
+    const customBalance = parseFloat(customBalanceInput.value);
+
+    if (isNaN(customBalance) || customBalance < 0) {
+        alert("Please enter a valid balance.");
+        return;
+    }
+
+    balance = customBalance;
+    updateBalanceDisplay();
+    saveData();  
+}
+
+
+setBalanceButton.addEventListener('click', handleSetCustomBalance);
+
+function clearCookies() {
+    localStorage.clear();
+    location.reload();
+}

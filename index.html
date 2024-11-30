@@ -9,12 +9,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Skyblock Bazaar Data</h1>
-        
+        <h1>Skyblock Bazaar Transaction Tracker</h1>
+        <div id="custom-balance-section">
+            <label for="custom-balance">Set Custom Balance:</label>
+            <input type="number" id="custom-balance" placeholder="Enter your balance" min="0">
+            <button id="set-balance-button">Set Balance</button>
+        </div>
         <div class="search-section">
             <label for="product-search">Search for a Product:</label>
             <input type="text" id="product-search" placeholder="Search products..." autocomplete="off">
@@ -31,24 +37,57 @@
             </select>
         </div>
 
-        <table id="bazaar-table">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Buy Price</th>
-                    <th>Sell Price</th>
-                    <th>Buy Volume</th>
-                    <th>Sell Volume</th>
-                    <th>Good Buy?</th>
-                    <th>Reason</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Table data will be dynamically inserted here -->
-            </tbody>
-        </table>
-    </div>
+        <div class="data-section">
+            <table id="bazaar-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Buy Price</th>
+                        <th>Sell Price</th>
+                        <th>Buy Volume</th>
+                        <th>Sell Volume</th>
+                        <th>Good Buy?</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+        
+                </tbody>
+            </table>
 
+            <div id="balance-display">Balance: 10000 coins</div>
+
+
+            <div id="inventory-section">
+                <h3>Inventory</h3>
+                <div id="inventory-display">
+        
+                </div>
+            </div>
+        </div>
+
+        <div id="buy-sell-controls">
+            <div>
+                <label for="buy-quantity">Buy Quantity:</label>
+                <input id="buy-quantity" type="number" min="1" value="1">
+                <button id="buy-button">Buy</button>
+            </div>
+            <div>
+                <label for="sell-quantity">Sell Quantity:</label>
+                <input id="sell-quantity" type="number" min="1" value="1">
+                <button id="sell-button">Sell</button>
+            </div>
+        </div>
+
+        <div id="transaction-history">
+            <h3>Transaction History</h3>
+            <ul id="history-list">
+    
+            </ul>
+        </div>
+    </div>
+    
+    <button id="reset-button" onclick="clearCookies()">Reset Data</button>
     <script src="script.js"></script>
 </body>
 </html>
